@@ -16,6 +16,8 @@ namespace Avalonia.Animation
     /// </summary>
     public abstract class Animator<T> : AvaloniaList<AnimatorKeyFrame>, IAnimator
     {
+        private readonly IAnimationTimer _timer;
+
         /// <summary>
         /// List of type-converted keyframes.
         /// </summary>
@@ -28,8 +30,12 @@ namespace Avalonia.Animation
         /// </summary>
         public AvaloniaProperty Property { get; set; }
 
-        public Animator()
+        public Animator(IAnimationTimer timer)
         {
+            Contract.Requires<ArgumentNullException>(timer != null);
+
+            _timer = timer;
+
             // Invalidate keyframes when changed.
             this.CollectionChanged += delegate { _isVerfifiedAndConverted = false; };
         }
@@ -42,7 +48,7 @@ namespace Avalonia.Animation
 
             return obsMatch
                 // Ignore triggers when global timers are paused.
-                .Where(p => p && Timing.GetGlobalPlayState() != PlayState.Pause)
+                ////.Where(p => p && AnimationTimer.GetGlobalPlayState() != PlayState.Pause)
                 .Subscribe(_ =>
                 {
                     var timerObs = RunKeyFrames(animation, control);
@@ -100,11 +106,11 @@ namespace Avalonia.Animation
         private IDisposable RunKeyFrames(Animation animation, Animatable control)
         {
             var stateMachine = new AnimatorStateMachine<T>();
-            stateMachine.Initialize(animation, control, this);
+            stateMachine.Initialize(_timer, animation, control, this);
 
-            Timing.AnimationStateTimer
+            _timer.Tick
                         .TakeWhile(_ => !stateMachine._unsubscribe)
-                        .Subscribe(t => stateMachine.Step(Timing.GetGlobalPlayState(), (ulong)t, DoInterpolation));
+                        .Subscribe(t => stateMachine.Step(PlayState.Run, t, DoInterpolation));
 
             return control.Bind(Property, stateMachine, BindingPriority.Animation);
         }

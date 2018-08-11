@@ -20,7 +20,7 @@ namespace Avalonia.Rendering
         private IRuntimePlatform _runtime;
         private int _subscriberCount;
         private long _tickStartTimeStamp;
-        private Action<long> _tick;
+        private Action<TimeSpan> _tick;
         private IDisposable _subscription;
 
         /// <summary>
@@ -40,7 +40,7 @@ namespace Avalonia.Rendering
         public int FramesPerSecond { get; }
 
         /// <inheritdoc/>
-        public event Action<long> Tick
+        public event Action<TimeSpan> Tick
         {
             add
             {
@@ -80,15 +80,16 @@ namespace Avalonia.Rendering
         /// This can be overridden by platform implementations to use a specialized timer
         /// implementation.
         /// </remarks>
-        protected virtual IDisposable StartCore(Action<long> tick)
+        protected virtual IDisposable StartCore(Action<TimeSpan> tick)
         {
             if (_runtime == null)
             {
                 _runtime = AvaloniaLocator.Current.GetService<IRuntimePlatform>();
             }
 
-            return _runtime.StartSystemTimer(TimeSpan.FromSeconds(1.0 / FramesPerSecond),
-                                             () => tick(TimeStampToFrames()));
+            return _runtime.StartSystemTimer(
+                TimeSpan.FromSeconds(1.0 / FramesPerSecond),
+                () => tick(GetElapsed()));
         }
 
         /// <summary>
@@ -100,13 +101,15 @@ namespace Avalonia.Rendering
             _subscription = null;
         }
 
-        protected long TimeStampToFrames()
-                     => (Stopwatch.GetTimestamp() - _tickStartTimeStamp)
-                      / (Stopwatch.Frequency / FramesPerSecond);
-
-        private void InternalTick(long tickCount)
+        protected TimeSpan GetElapsed()
         {
-            _tick(tickCount);
+            var delta = Stopwatch.GetTimestamp() - _tickStartTimeStamp;
+            return TimeSpan.FromTicks((delta * 10000000) / Stopwatch.Frequency);
+        }
+
+        private void InternalTick(TimeSpan elapsed)
+        {
+            _tick(elapsed);
         }
     }
 }

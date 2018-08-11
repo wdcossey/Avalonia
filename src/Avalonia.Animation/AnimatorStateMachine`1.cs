@@ -25,6 +25,7 @@ namespace Avalonia.Animation
         private bool _gotFirstKFValue;
         private bool _gotFirstFrameCount;
 
+        private IAnimationTimer _timer;
         private FillMode _fillMode;
         private PlaybackDirection _animationDirection;
         private KeyFramesStates _currentState;
@@ -51,15 +52,20 @@ namespace Avalonia.Animation
             Disposed
         }
 
-        public void Initialize(Animation animation, Animatable control, Animator<T> animator)
+        public void Initialize(
+            IAnimationTimer timer,
+            Animation animation,
+            Animatable control,
+            Animator<T> animator)
         {
+            _timer = timer;
             _parent = animator;
             _targetAnimation = animation;
             _targetControl = control;
             _neutralValue = (T)_targetControl.GetValue(_parent.Property);
 
-            _delayTotalFrameCount = (ulong)(animation.Delay.Ticks / Timing.FrameTick.Ticks);
-            _durationTotalFrameCount = (ulong)(animation.Duration.Ticks / Timing.FrameTick.Ticks);
+            //_delayTotalFrameCount = (ulong)(animation.Delay.Ticks / _timer.FrameTick.Ticks);
+            //_durationTotalFrameCount = (ulong)(animation.Duration.Ticks / AnimationTimer.FrameTick.Ticks);
 
             switch (animation.RepeatCount.RepeatType)
             {
@@ -84,11 +90,11 @@ namespace Avalonia.Animation
                 _currentState = KeyFramesStates.DoRun;
         }
 
-        public void Step(PlayState _playState, ulong frameTick, Func<double, T, T> Interpolator)
+        public void Step(PlayState _playState, TimeSpan frameTick, Func<double, T, T> Interpolator)
         {
             try
             {
-                InternalStep(_playState, frameTick, Interpolator);
+                InternalStep(_playState, (ulong)frameTick.Ticks, Interpolator);
             }
             catch (Exception e)
             {

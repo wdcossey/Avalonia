@@ -4,6 +4,7 @@
 using System;
 using System.Reactive.Concurrency;
 using System.Threading;
+using Avalonia.Animation;
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
 using Avalonia.Input;
@@ -326,6 +327,7 @@ namespace Avalonia
 
             AvaloniaLocator.CurrentMutable
                 .Bind<IAccessKeyHandler>().ToTransient<AccessKeyHandler>()
+                .Bind<IAnimationTimer>().ToConstant(new AnimationTimer())
                 .Bind<IGlobalDataTemplates>().ToConstant(this)
                 .Bind<IGlobalStyles>().ToConstant(this)
                 .Bind<IFocusManager>().ToConstant(FocusManager)

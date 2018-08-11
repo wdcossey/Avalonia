@@ -14,6 +14,15 @@ namespace Avalonia.Animation
     /// </summary>
     public class DoubleAnimator : Animator<double>
     {
+        public DoubleAnimator()
+            : base(AnimationTimer.Instance)
+        {
+        }
+
+        public DoubleAnimator(IAnimationTimer timer)
+            : base(timer)
+        {
+        }
 
         /// <inheritdocs/>
         protected override double DoInterpolation(double t, double neutralValue)

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading.Tasks;
 
 namespace Avalonia.Rendering
 {
@@ -15,6 +14,6 @@ namespace Avalonia.Rendering
         /// This event can be raised on any thread; it is the responsibility of the subscriber to
         /// switch execution to the right thread.
         /// </remarks>
-        event Action<long> Tick;
+        event Action<TimeSpan> Tick;
     }
 }

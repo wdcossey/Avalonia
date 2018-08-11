@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Avalonia.Animation;
 using Avalonia.Logging;
 using Avalonia.Threading;
 
@@ -16,6 +17,7 @@ namespace Avalonia.Rendering
     {
         private readonly IDispatcher _dispatcher;
         private List<IRenderLoopTask> _items = new List<IRenderLoopTask>();
+        private IAnimationTimerPulse _animationTimer;
         private IRenderTimer _timer;
         private bool inTick;
 
@@ -40,6 +42,22 @@ namespace Avalonia.Rendering
 
         /// <summary>
         /// Gets the render timer.
+        /// </summary>
+        protected IAnimationTimerPulse AnimationTimer
+        {
+            get
+            {
+                if (_animationTimer == null)
+                {
+                    _animationTimer = (IAnimationTimerPulse)AvaloniaLocator.Current.GetService<IAnimationTimer>();
+                }
+
+                return _animationTimer;
+            }
+        }
+
+        /// <summary>
+        /// Gets the animation timer.
         /// </summary>
         protected IRenderTimer Timer
         {
@@ -82,7 +100,7 @@ namespace Avalonia.Rendering
             }
         }
 
-        private async void TimerTick(long tickCount)
+        private async void TimerTick(TimeSpan elapsed)
         {
             if (!inTick)
             {
@@ -90,7 +108,8 @@ namespace Avalonia.Rendering
 
                 try
                 {
-                    var needsUpdate = Animation.Timing.HasSubscriptions;
+                    var animationTimer = AnimationTimer;
+                    var needsUpdate = animationTimer.HasSubscriptions;
 
                     foreach (var i in _items)
                     {
@@ -105,7 +124,7 @@ namespace Avalonia.Rendering
                     {
                         await _dispatcher.InvokeAsync(() =>
                         {
-                            Animation.Timing.Pulse(tickCount);
+                            animationTimer.Pulse(elapsed);
 
                             foreach (var i in _items)
                             {

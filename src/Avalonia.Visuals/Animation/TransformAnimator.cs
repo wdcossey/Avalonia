@@ -18,6 +18,16 @@ namespace Avalonia.Animation
     {
         DoubleAnimator childKeyFrames;
 
+        public TransformAnimator()
+            : base(AnimationTimer.Instance)
+        {
+        }
+
+        public TransformAnimator(IAnimationTimer timer)
+            : base(timer)
+        {
+        }
+
         /// <inheritdoc/>
         public override IDisposable Apply(Animation animation, Animatable control, IObservable<bool> obsMatch)
         {
@@ -82,7 +92,7 @@ namespace Avalonia.Animation
 
         void InitializeChildKeyFrames()
         {
-            childKeyFrames = new DoubleAnimator();
+            childKeyFrames = new DoubleAnimator(AnimationTimer.Instance);
 
             foreach (AnimatorKeyFrame keyframe in this)
             {
