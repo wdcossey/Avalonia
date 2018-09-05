@@ -26,6 +26,7 @@ namespace Avalonia.Markup.Parsers
             Traversal,
             TypeName,
             Property,
+            PropertyNot,
             Template,
             End,
         }
@@ -63,6 +64,9 @@ namespace Avalonia.Markup.Parsers
                         break;
                     case State.Property:
                         (state, syntax) = ParseProperty(ref r);
+                        break;
+                    case State.PropertyNot:
+                        state = ParseCannotHaveType(ref r);
                         break;
                     case State.Template:
                         (state, syntax) = ParseTemplate(ref r);
@@ -142,6 +146,15 @@ namespace Avalonia.Markup.Parsers
             return State.Middle;
         }
 
+        private static State ParseCannotHaveType(ref CharacterReader r)
+        {
+            if (r.TakeIf('['))
+            {
+                return State.Property;
+            }
+            return State.Middle;
+        }
+
         private static (State, ISyntax) ParseColon(ref CharacterReader r)
         {
             var identifier = r.ParseIdentifier();
@@ -152,6 +165,7 @@ namespace Avalonia.Markup.Parsers
             }
 
             const string IsKeyword = "is";
+            const string NotKeyword = "not";
             if (identifier.SequenceEqual(IsKeyword.AsSpan()) && r.TakeIf('('))
             {
                 var syntax = ParseType(ref r, new IsSyntax());
@@ -161,6 +175,25 @@ namespace Avalonia.Markup.Parsers
                 }
 
                 return (State.CanHaveType, syntax);
+            }
+            else if (identifier.SequenceEqual(NotKeyword.AsSpan()) && r.TakeIf('(') /*&& r.TakeIf('[')*/)
+            {
+                if (r.TakeIf('['))
+                {
+                    var x = ParseProperty(ref r);
+                }
+                else if (r.TakeIf(':'))
+                {
+                    var x = ParseColon(ref r);
+                }
+                //??? State.Property
+                var syntax = ParsePropertyNot(ref r);
+                if (r.End || !r.TakeIf(')'))
+                {
+                    throw new ExpressionParseException(r.Position, $"Expected ')', got {r.Peek}");
+                }
+
+                return syntax;
             }
             else
             {
@@ -252,6 +285,22 @@ namespace Avalonia.Markup.Parsers
             return (State.CanHaveType, new PropertySyntax { Property = property.ToString(), Value = value.ToString() });
         }
 
+        private static (State, ISyntax) ParsePropertyNot(ref CharacterReader r)
+        {
+            var property = r.ParseIdentifier();
+
+            if (!r.TakeIf('='))
+            {
+                throw new ExpressionParseException(r.Position, $"Expected '=', got '{r.Peek}'");
+            }
+
+            var value = r.TakeUntil(']');
+
+            r.Take();
+
+            return (State.PropertyNot, new PropertyNotSyntax { Property = property.ToString(), Value = value.ToString() });
+        }
+
         private static TSyntax ParseType<TSyntax>(ref CharacterReader r, TSyntax syntax)
             where TSyntax : ITypeSyntax
         {
@@ -340,7 +389,14 @@ namespace Avalonia.Markup.Parsers
             }
         }
 
-        public class PropertySyntax : ISyntax
+        public interface IPropertySyntax : ISyntax
+        {
+            string Property { get; set; }
+
+            string Value { get; set; }
+        }
+
+        public class PropertySyntax : IPropertySyntax
         {
             public string Property { get; set; }
 
@@ -351,6 +407,20 @@ namespace Avalonia.Markup.Parsers
                 return obj is PropertySyntax && 
                     ((PropertySyntax)obj).Property == Property && 
                     ((PropertySyntax)obj).Value == Value;
+            }
+        }
+
+        public class PropertyNotSyntax : IPropertySyntax
+        {
+            public string Property { get; set; }
+
+            public string Value { get; set; }
+
+            public override bool Equals(object obj)
+            {
+                return obj is PropertySyntax && 
+                    ((PropertySyntax)obj).Property == Property && 
+                    ((PropertySyntax)obj).Value != Value;
             }
         }
 

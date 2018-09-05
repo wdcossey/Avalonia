@@ -142,6 +142,31 @@ namespace Avalonia.Styling
         }
 
         /// <summary>
+        /// Returns a selector which doesn't match a control with the specified property value.
+        /// </summary>
+        /// <typeparam name="T">The property type.</typeparam>
+        /// <param name="previous">The previous selector.</param>
+        /// <param name="property">The property.</param>
+        /// <param name="value">The property value.</param>
+        /// <returns>The selector.</returns>
+        public static Selector PropertyNotEquals<T>(this Selector previous, AvaloniaProperty<T> property, object value)
+        {
+            return new PropertyNotEqualsSelector(previous, property, value);
+        }
+
+        /// <summary>
+        /// Returns a selector which doesn't match a control with the specified property value.
+        /// </summary>
+        /// <param name="previous">The previous selector.</param>
+        /// <param name="property">The property.</param>
+        /// <param name="value">The property value.</param>
+        /// <returns>The selector.</returns>
+        public static Selector PropertyNotEquals(this Selector previous, AvaloniaProperty property, object value)
+        {
+            return new PropertyNotEqualsSelector(previous, property, value);
+        }
+
+        /// <summary>
         /// Returns a selector which enters a lookless control's template.
         /// </summary>
         /// <param name="previous">The previous selector.</param>

@@ -58,38 +58,32 @@ namespace Avalonia.Markup.Parsers
                         result = result.Name(name.Name);
                         break;
                     case SelectorGrammar.PropertySyntax property:
+                    {
+                        if (TryConvertProperty(property, result, out var targetProperty, out var typedValue))
                         {
-                            var type = result?.TargetType;
-
-                            if (type == null)
-                            {
-                                throw new InvalidOperationException("Property selectors must be applied to a type.");
-                            }
-
-                            var targetProperty = AvaloniaPropertyRegistry.Instance.FindRegistered(type, property.Property);
-
-                            if (targetProperty == null)
-                            {
-                                throw new InvalidOperationException($"Cannot find '{property.Property}' on '{type}");
-                            }
-
-                            object typedValue;
-
-                            if (TypeUtilities.TryConvert(
-                                    targetProperty.PropertyType,
-                                    property.Value,
-                                    CultureInfo.InvariantCulture,
-                                    out typedValue))
-                            {
-                                result = result.PropertyEquals(targetProperty, typedValue);
-                            }
-                            else
-                            {
-                                throw new InvalidOperationException(
-                                    $"Could not convert '{property.Value}' to '{targetProperty.PropertyType}");
-                            }
-                            break;
+                            result = result.PropertyEquals(targetProperty, typedValue);
                         }
+                        else
+                        {
+                            throw new InvalidOperationException(
+                                $"Could not convert '{property.Value}' to '{targetProperty.PropertyType}");
+                        }
+                        break;
+                    }
+                    case SelectorGrammar.PropertyNotSyntax property:
+                    {
+                        if (TryConvertProperty(property, result, out var targetProperty, out var typedValue))
+                        {
+                            result = result.PropertyNotEquals(targetProperty, typedValue);
+                        }
+                        else
+                        {
+                            throw new InvalidOperationException(
+                                $"Could not convert '{property.Value}' to '{targetProperty.PropertyType}");
+                        }
+                        break;
+                            
+                    }
                     case SelectorGrammar.ChildSyntax child:
                         result = result.Child();
                         break;
@@ -103,6 +97,29 @@ namespace Avalonia.Markup.Parsers
             }
 
             return result;
+        }
+
+        private bool TryConvertProperty(SelectorGrammar.IPropertySyntax property, Selector result, out AvaloniaProperty targetProperty, out object typedValue)
+        {
+            var type = result?.TargetType;
+
+            if (type == null)
+            {
+                throw new InvalidOperationException("Property selectors must be applied to a type.");
+            }
+
+            targetProperty = AvaloniaPropertyRegistry.Instance.FindRegistered(type, property.Property);
+
+            if (targetProperty == null)
+            {
+                throw new InvalidOperationException($"Cannot find '{property.Property}' on '{type}");
+            }
+
+            return TypeUtilities.TryConvert(
+                targetProperty.PropertyType,
+                property.Value,
+                CultureInfo.InvariantCulture,
+                out typedValue);
         }
     }
 }

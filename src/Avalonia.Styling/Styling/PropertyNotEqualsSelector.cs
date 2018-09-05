@@ -11,14 +11,15 @@ namespace Avalonia.Styling
     /// A selector that matches the common case of a type and/or name followed by a collection of
     /// style classes and pseudoclasses.
     /// </summary>
-    internal class PropertyEqualsSelector : Selector
+    internal class PropertyNotEqualsSelector : Selector
     {
         private readonly Selector _previous;
         private readonly AvaloniaProperty _property;
         private readonly object _value;
         private string _selectorString;
+        private readonly bool _invert;
 
-        public PropertyEqualsSelector(Selector previous, AvaloniaProperty property, object value)
+        public PropertyNotEqualsSelector(Selector previous, AvaloniaProperty property, object value)
         {
             Contract.Requires<ArgumentNullException>(property != null);
 
@@ -50,7 +51,7 @@ namespace Avalonia.Styling
                     builder.Append(_previous.ToString());
                 }
 
-                builder.Append('[');
+                builder.Append(":not([");
 
                 if (_property.IsAttached)
                 {
@@ -61,7 +62,7 @@ namespace Avalonia.Styling
                 builder.Append(_property.Name);
                 builder.Append('=');
                 builder.Append(_value ?? string.Empty);
-                builder.Append(']');
+                builder.Append("])");
 
                 _selectorString = builder.ToString();
             }
@@ -78,11 +79,12 @@ namespace Avalonia.Styling
             }
             else if (subscribe)
             {
-                return new SelectorMatch(control.GetObservable(_property).Select(v => Equals(v, _value)));
+                return new SelectorMatch(control.GetObservable(_property).Select(v => !Equals(v ?? string.Empty, _value)));
             }
             else
             {
-                return new SelectorMatch(control.GetValue(_property).Equals(_value));
+                var v = control.GetValue(_property) ?? string.Empty;
+                return new SelectorMatch(!Equals(v, _value));
             }
         }
 
