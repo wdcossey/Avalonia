@@ -1,16 +1,17 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
+using Generators;
 
 namespace ControlCatalog.Pages
 {
-    public class ButtonsPage : UserControl
+    [CssGenerator]
+    public partial class ButtonsPage : UserControl
     {
         private int repeatButtonClickCount = 0;
 
         public ButtonsPage()
         {
             InitializeComponent();
-
             this.Get<RepeatButton>("RepeatButton").Click += OnRepeatButtonClick;
         }
 

@@ -1,6 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             x:Class="ControlCatalog.Pages.ButtonsPage">
+             x:Class="ControlCatalog.Pages.ButtonsPage"
+             Styles="{}">
 
   <UserControl.Resources>
 
@@ -17,8 +18,8 @@
     </MenuFlyout>
 
   </UserControl.Resources>
-      
-  <UserControl.Styles >
+
+  <!--<UserControl.Styles >
 
     <Style Selector="Border.header-border">
       <Setter Property="Background">
@@ -32,7 +33,7 @@
       <Setter Property="MaxWidth" Value="450" />
       <Setter Property="Padding" Value="10" />
     </Style>
-    
+
     <Style Selector="TextBlock.header">
       <Setter Property="FontSize" Value="18" />
       <Setter Property="FontWeight" Value="Bold" />
@@ -45,7 +46,7 @@
       <Setter Property="Margin" Value="0,0,0,15" />
     </Style>
 
-  </UserControl.Styles>
+  </UserControl.Styles>-->
 
   <!-- Styles and overall page design based on AcrylicPage -->
 

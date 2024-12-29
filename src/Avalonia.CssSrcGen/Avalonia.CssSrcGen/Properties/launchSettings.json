@@ -1,0 +1,9 @@
+﻿{
+  "$schema": "https://json.schemastore.org/launchsettings.json",
+  "profiles": {
+    "DebugRoslynSourceGenerator": {
+      "commandName": "DebugRoslynComponent",
+      "targetProject": "../Avalonia.CssSrcGen.Sample/Avalonia.CssSrcGen.Sample.csproj"
+    }
+  }
+}
